@@ -11,3 +11,5 @@ irc
 pandas
 pytz
 validators
+pymongo==4.6.2
+python-dotenv==1.0.1
