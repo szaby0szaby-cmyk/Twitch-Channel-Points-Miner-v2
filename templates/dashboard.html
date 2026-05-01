@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Twitch Miner Vezérlőpult</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { background-color: #0e0e10; color: #efeff1; }
+        .card { background-color: #18181b; border: 1px solid #303032; }
+    </style>
+</head>
+<body class="min-h-screen p-8">
+
+    <div class="max-w-7xl mx-auto flex justify-between items-center mb-10 pb-5 border-b border-gray-800">
+        <div>
+            <h1 class="text-3xl font-bold">Twitch Miner <span style="color: #bf94ff;">Dashboard</span></h1>
+            <p class="text-gray-400 mt-1">Bejelentkezve mint: <span class="text-white font-semibold">{{ username }}</span></p>
+        </div>
+        <a href="/logout" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg font-bold transition duration-200">Kijelentkezés</a>
+    </div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for account in accounts %}
+        <div class="card rounded-xl p-6 shadow-xl relative overflow-hidden">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-xl font-bold">{{ account.channel_name }}</h2>
+            </div>
+            
+            <div class="mb-4">
+                <p class="text-gray-400 text-sm">Aktuális pontok</p>
+                <div class="flex items-end gap-3 mt-1">
+                    <span class="text-4xl font-extrabold text-white">{{ "{:,}".format(account.current_points).replace(',', ' ') }}</span>
+                    
+                    {% if account.diff > 0 %}
+                        <span class="text-green-500 font-bold flex items-center text-lg">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                            +{{ account.diff }}
+                        </span>
+                    {% elif account.diff < 0 %}
+                        <span class="text-red-500 font-bold flex items-center text-lg">
+                            <svg class="w-5 h-5 mr-1 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                            {{ account.diff }}
+                        </span>
+                    {% else %}
+                        <span class="text-gray-500 font-bold flex items-center text-lg">
+                            0
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="h-32 w-full mt-6">
+                <canvas id="chart-{{ loop.index }}"></canvas>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        const accountsData = {{ accounts | tojson }};
+        
+        accountsData.forEach((account, index) => {
+            const ctx = document.getElementById(`chart-${index + 1}`).getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: account.history.map((_, i) => `Mentés ${i+1}`),
+                    datasets: [{
+                        label: 'Pontszám',
+                        data: account.history,
+                        backgroundColor: '#bf94ff',
+                        borderRadius: 4,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { enabled: true } },
+                    scales: {
+                        x: { display: false }, 
+                        y: { 
+                            display: false,
+                            beginAtZero: true 
+                        }  
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
