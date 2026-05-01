@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: twitch_mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  web_dashboard:
+    build: .
+    container_name: twitch_web
+    restart: unless-stopped
+    command: python app.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+
+  miner_bot:
+    build: .
+    container_name: twitch_miner
+    restart: unless-stopped
+    command: python run.py
+    depends_on:
+      - mongodb
+    env_file:
+      - .env
+
+volumes:
+  mongo_data:
