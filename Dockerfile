@@ -44,4 +44,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -qq -y --fix-missing --no-ins
   && rm -rf /usr/share/doc/*
 
 ADD ./TwitchChannelPointsMiner ./TwitchChannelPointsMiner
-ENTRYPOINT [ "python", "run.py" ]
+
+# A weboldal és a futtató fájlok bemásolása
+ADD ./templates ./templates
+ADD ./app.py ./app.py
+ADD ./run.py ./run.py
+
+CMD [ "python", "run.py" ]
